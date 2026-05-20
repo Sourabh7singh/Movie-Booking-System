@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  name         String
+  bookings     Booking[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Movie {
+  id       String    @id @default(uuid())
+  title    String
+  duration Int
+  poster   String?
+  showings Showing[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Theater {
+  id       String    @id @default(uuid())
+  name     String
+  rows     Int
+  cols     Int
+  showings Showing[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Showing {
+  id        String    @id @default(uuid())
+  movieId   String
+  theaterId String
+  startsAt  DateTime
+  price     Float
+  movie     Movie     @relation(fields: [movieId], references: [id])
+  theater   Theater   @relation(fields: [theaterId], references: [id])
+  seats     Seat[]
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Seat {
+  id         String      @id @default(uuid())
+  showingId  String
+  row        String
+  col        Int
+  seatLabel  String
+  type       SeatType    @default(STANDARD)
+  status     SeatStatus  @default(AVAILABLE)
+  showing    Showing     @relation(fields: [showingId], references: [id])
+  booking    Booking?    @relation(fields: [bookingId], references: [id])
+  bookingId  String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([showingId, seatLabel])
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  userId          String
+  showingId       String
+  status          BookingStatus @default(PENDING)
+  totalAmount     Float
+  stripePaymentId String?
+  expiresAt      DateTime
+  createdAt      DateTime      @default(now())
+  paidAt        DateTime?
+  user          User          @relation(fields: [userId], references: [id])
+  showing       Showing       @relation(fields: [showingId], references: [id])
+  seats         Seat[]
+}
+
+enum SeatStatus {
+  AVAILABLE
+  BOOKED
+}
+
+enum SeatType {
+  STANDARD
+  PREMIUM
+  RECLINER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
