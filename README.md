@@ -54,6 +54,3 @@ CineX is a production-ready, real-time movie theater seat booking system. It han
    ```
 
 6. Open `http://localhost:5173` to view the CineX app.
-
-## License
-MIT
